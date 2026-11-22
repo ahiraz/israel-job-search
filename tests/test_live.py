@@ -112,7 +112,8 @@ def test_update_companies_finds_and_saves_daylight(tmp_path):
         "https://www.linkedin.com/jobs/view/123",
     ]), encoding="utf-8")
 
-    rc, out, err = run(["discover", "--urls", str(urls)], tmp_path, cfg)
+    report_file = tmp_path / "report.json"
+    rc, out, err = run(["discover", "--urls", str(urls), "--report", str(report_file)], tmp_path, cfg)
     assert rc == 0, err
     report = json.loads(out)
     new = {n["token"].split("::")[0]: n for n in report["new"]}
@@ -121,7 +122,7 @@ def test_update_companies_finds_and_saves_daylight(tmp_path):
     assert {"board": f"greenhouse/{known['token'].lower()}", "reason": "known"} in report["skipped"]
     assert not (cfg / "companies.json").exists(), "discover without --save must not write"
 
-    rc, out, err = run(["discover", "--urls", str(urls), "--save"], tmp_path, cfg)
+    rc, out, err = run(["discover", "--save", str(report_file)], tmp_path, cfg)
     assert rc == 0 and "Added 2 companies" in out, out + err
 
     rc, out, _ = run(["discover", "--urls", str(urls)], tmp_path, cfg)

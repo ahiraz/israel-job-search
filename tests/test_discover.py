@@ -86,7 +86,8 @@ def test_cli_discover_reports_and_saves(monkeypatch, tmp_path, shipped, capsys):
     monkeypatch.setattr(adapters, "fetch_jobs", fetch)
     monkeypatch.setattr(discover, "board_name", lambda p, t: t.title())
 
-    assert cli.main(["discover", "--urls", str(urls)]) == 0
+    report_file = tmp_path / "report.json"
+    assert cli.main(["discover", "--urls", str(urls), "--report", str(report_file)]) == 0
     report = json.loads(capsys.readouterr().out)
     assert [n["token"] for n in report["new"]] == ["newco"]
     reasons = {s["board"]: s["reason"] for s in report["skipped"]}
@@ -94,7 +95,7 @@ def test_cli_discover_reports_and_saves(monkeypatch, tmp_path, shipped, capsys):
                        "ashby/gone": "fetch failed"}
     assert not (tmp_path / "cfg" / "companies.json").exists()
 
-    assert cli.main(["discover", "--urls", str(urls), "--save"]) == 0
+    assert cli.main(["discover", "--save", str(report_file)]) == 0
     out = capsys.readouterr().out
     assert "Added 1 companies to" in out
     saved = json.loads((tmp_path / "cfg" / "companies.json").read_text(encoding="utf-8"))
@@ -110,3 +111,28 @@ def test_known_comeet_matched_by_uid(monkeypatch, tmp_path, shipped, capsys):
     assert cli.main(["discover", "--urls", str(urls)]) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["new"] == [] and report["skipped"][0]["reason"] == "known"
+
+
+def test_save_uses_the_approved_report_without_refetching(monkeypatch, tmp_path, shipped, capsys):
+    report = tmp_path / "report.json"
+    report.write_text(json.dumps({"new": [{"name": "NewCo", "domain": "", "provider": "greenhouse",
+                                           "token": "newco", "careers_url": "", "jobs_israel": 2}],
+                                  "skipped": []}), encoding="utf-8")
+
+    def boom(*a, **k):
+        raise AssertionError("--save must not fetch")
+    monkeypatch.setattr(adapters, "fetch_jobs", boom)
+    assert cli.main(["discover", "--save", str(report)]) == 0
+    assert "Added 1 companies to" in capsys.readouterr().out
+    saved = json.loads((tmp_path / "cfg" / "companies.json").read_text(encoding="utf-8"))
+    assert [s["token"] for s in saved] == ["newco"]
+
+
+def test_discover_writes_report_file(monkeypatch, tmp_path, shipped, capsys):
+    urls = tmp_path / "u.txt"
+    urls.write_text("https://job-boards.greenhouse.io/newco")
+    monkeypatch.setattr(adapters, "fetch_jobs", lambda p, t, keep=None: [il("x")])
+    monkeypatch.setattr(discover, "board_name", lambda p, t: "NewCo")
+    report = tmp_path / "r.json"
+    assert cli.main(["discover", "--urls", str(urls), "--report", str(report)]) == 0
+    assert json.loads(report.read_text())["new"][0]["token"] == "newco"

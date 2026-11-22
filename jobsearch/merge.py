@@ -28,16 +28,19 @@ def _sources(text: str) -> list[str]:
 def merge(*row_lists: list[dict]) -> list[dict]:
     merged: list[dict] = []
     by_url: dict[str, int] = {}
-    by_name: dict[tuple, int] = {}
+    by_name: dict[tuple, list[int]] = {}
     for rows in row_lists:
         for r in rows:
             ukey = normalize_url(r["url"]) if r.get("url") else None
             nkey = (normalize(r["company"]), normalize(r["title"]))
+            src = set(_sources(r["source"]))
             idx = by_url.get(ukey) if ukey else None
             if idx is None:
-                idx = by_name.get(nkey)
+                # A name match joins rows from different sources only: one source
+                # listing the same title twice (two cities, two teams) is two jobs.
+                idx = next((i for i in by_name.get(nkey, []) if not merged[i]["_src"] & src), None)
             if idx is None:
-                merged.append({**r, "_src": set(_sources(r["source"]))})
+                merged.append({**r, "_src": set(src)})
                 idx = len(merged) - 1
             else:
                 m = merged[idx]
@@ -50,7 +53,8 @@ def merge(*row_lists: list[dict]) -> list[dict]:
                     m["city"] = r["city"]
             if ukey:
                 by_url.setdefault(ukey, idx)
-            by_name.setdefault(nkey, idx)
+            if idx not in by_name.setdefault(nkey, []):
+                by_name[nkey].append(idx)
     out = []
     for m in merged:
         src = m.pop("_src")

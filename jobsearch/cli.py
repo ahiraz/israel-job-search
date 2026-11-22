@@ -101,6 +101,23 @@ def cmd_merge(args) -> int:
 
 
 def cmd_discover(args) -> int:
+    if args.save:
+        try:
+            report = json.loads(Path(args.save).read_text(encoding="utf-8"))
+            new = report["new"]
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            _err(f"cannot read report {args.save}: {e}")
+            return 2
+        try:
+            added = add_user_companies(new)
+        except CompanyFileError as e:
+            _err(str(e))
+            return 2
+        print(f"Added {added} companies to {user_file()}")
+        return 0
+    if not args.urls:
+        _err("give --urls FILE to check, or --save REPORT to save an approved report")
+        return 2
     try:
         urls = [u.strip() for u in Path(args.urls).read_text(encoding="utf-8").splitlines() if u.strip()]
     except FileNotFoundError:
@@ -111,11 +128,11 @@ def cmd_discover(args) -> int:
     except CompanyFileError as e:
         _err(str(e))
         return 2
-    if not args.save:
-        print(json.dumps(report, indent=1, ensure_ascii=False))
-        return 0
-    added = add_user_companies(report["new"])
-    print(f"Added {added} companies to {user_file()}")
+    text = json.dumps(report, indent=1, ensure_ascii=False)
+    if args.report:
+        Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.report).write_text(text + "\n", encoding="utf-8")
+    print(text)
     return 0
 
 
@@ -136,8 +153,9 @@ def build_parser() -> argparse.ArgumentParser:
     m.add_argument("--heading", default="Jobs")
     m.set_defaults(func=cmd_merge)
     d = sub.add_parser("discover", help="find new company boards in a list of URLs")
-    d.add_argument("--urls", required=True, help="text file, one URL per line")
-    d.add_argument("--save", action="store_true", help="add the new boards to your personal list")
+    d.add_argument("--urls", help="text file, one URL per line, to check")
+    d.add_argument("--report", help="also write the JSON report to this file")
+    d.add_argument("--save", metavar="REPORT", help="add the 'new' boards of an approved report to your personal list")
     d.set_defaults(func=cmd_discover)
     return ap
 

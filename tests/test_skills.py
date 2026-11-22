@@ -43,3 +43,15 @@ def test_find_jobs_never_discovers():
 def test_job_titles_has_no_default_exclusions():
     _, body = read("job-titles")
     assert "no default exclusions" in body.lower()
+
+
+def test_find_jobs_clears_previous_results_first():
+    _, body = read("find-jobs")
+    assert "rm -f ./jobs/boards.csv ./jobs/techmap.csv" in body
+    assert body.index("rm -f") < body.index(" boards --titles")
+
+
+def test_update_companies_saves_the_approved_report():
+    _, body = read("update-companies")
+    assert "--report ./jobs/discover_report.json" in body
+    assert "discover --save ./jobs/discover_report.json" in body

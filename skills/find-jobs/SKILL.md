@@ -8,6 +8,11 @@ You are running a full job search for the user. **Never invent job listings**: e
 ## Steps
 
 1. **Titles.** Run the job-titles skill (it reuses `./jobs/titles.txt` if the user wants).
+   Then clear the previous run's results, so a source that fails now can't leak old jobs into the list:
+
+```bash
+rm -f ./jobs/boards.csv ./jobs/techmap.csv
+```
 
 2. **Employer job boards.** Run:
 
@@ -23,9 +28,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" boards --titles ./jobs/titles.tx
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" techmap --titles ./jobs/titles.txt --out ./jobs/techmap.csv
 ```
 
-   Note its summary line. If it exits 1 or 2, note the message.
+   Note its summary line. If it exits 1, note the message. If both steps exited 2, the titles file is the problem: show the message, ask the user to fix `./jobs/titles.txt` (or rerun job-titles), and stop.
 
-4. **Merge.** Use the user's main title as the heading. Pass only the CSV files whose step succeeded in this run:
+4. **Merge.** Use the user's main title as the heading. A file whose step failed simply doesn't exist and is skipped:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" merge --inputs ./jobs/boards.csv ./jobs/techmap.csv --out-dir ./jobs --heading "<main title>"

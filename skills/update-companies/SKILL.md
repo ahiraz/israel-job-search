@@ -29,18 +29,20 @@ You are finding employer job boards that the search does not cover yet. **Never 
 3. **Check them** (no changes yet):
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" discover --urls ./jobs/discover_urls.txt
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" discover --urls ./jobs/discover_urls.txt --report ./jobs/discover_report.json
 ```
 
    It prints JSON: `new` (boards not in any list, verified to have at least one job in Israel, with `jobs_israel` counts) and `skipped` (with reason `known`, `no israeli jobs`, `fetch failed`, or `no comeet token on page`).
 
 4. **Show the user** a short summary: how many boards were found, how many are new, then a table of the new ones (name, provider, Israeli jobs). Ask: "Add these N companies to your personal list?"
 
-5. **Only if the user says yes**, run:
+5. **Only if the user says yes**, save exactly the boards they approved (from the report, no new checks):
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" discover --urls ./jobs/discover_urls.txt --save
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/jobs.py" discover --save ./jobs/discover_report.json
 ```
+
+   If the user approves only some of them, first edit `./jobs/discover_report.json` to remove the rejected entries from `new`.
 
    Report the `Added N companies to <path>` line. Explain that the personal list lives in that file, is used by every future search alongside the built-in list, survives plugin updates, and is the user's own to maintain.
 

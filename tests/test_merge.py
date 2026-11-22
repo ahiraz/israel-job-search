@@ -64,3 +64,17 @@ def test_cli_merge(tmp_path, capsys):
 
 def test_cli_merge_no_inputs_exits_1(tmp_path):
     assert cli.main(["merge", "--inputs", str(tmp_path / "x.csv"), "--out-dir", str(tmp_path)]) == 1
+
+
+def test_same_title_twice_in_one_source_kept_apart():
+    a = row("Wix", "Backend Engineer", "https://gh/1", "boards")
+    b = row("Wix", "Backend Engineer", "https://gh/2", "boards")
+    assert len(merge.merge([a, b])) == 2
+
+
+def test_name_match_only_across_sources():
+    a = row("Wix", "Backend Engineer", "https://gh/1", "boards")
+    b = row("Wix", "Backend Engineer", "https://gh/2", "boards")
+    t = row("Wix", "Backend Engineer", "https://li/9", "techmap")
+    got = merge.merge([a, b], [t])
+    assert len(got) == 2 and sorted(r["source"] for r in got) == ["boards", "boards + techmap"]

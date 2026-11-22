@@ -140,7 +140,8 @@ The skills call one script, which you can also run directly:
 python3 scripts/jobs.py boards  --titles jobs/titles.txt --out jobs/boards.csv
 python3 scripts/jobs.py techmap --titles jobs/titles.txt --out jobs/techmap.csv
 python3 scripts/jobs.py merge   --inputs jobs/boards.csv jobs/techmap.csv --out-dir jobs --heading "Backend Engineer"
-python3 scripts/jobs.py discover --urls urls.txt [--save]
+python3 scripts/jobs.py discover --urls urls.txt --report report.json
+python3 scripts/jobs.py discover --save report.json      # after you approve it
 ```
 
 Exit codes: `0` ok, `1` the run failed as a whole (for example no network; earlier
