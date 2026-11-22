@@ -14,7 +14,7 @@ list.
 In Claude Code:
 
 ```
-/plugin marketplace add OWNER/israel-job-search
+/plugin marketplace add ahiraz/israel-job-search
 /plugin install israel-job-search@israel-job-search
 ```
 
@@ -74,7 +74,7 @@ intern
 
 Matching ignores case and punctuation, and works on whole words: `backend engineer`
 matches "Senior Backend Engineer (Go)" but not "Backend Engineering Manager".
-`R&D` equals `RD`, and Hebrew `מפתח/ת` equals `מפתח`.
+`R&D` equals `RD`.
 
 ### search-boards: employers' own job boards
 

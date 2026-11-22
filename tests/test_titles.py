@@ -30,7 +30,7 @@ def test_no_builtin_exclusions():
 
 
 def test_hebrew_and_punctuation():
-    assert TitleFilter(["מנהל פיתוח"], []).accept("מנהל/ת פיתוח")
+    assert TitleFilter(["מנהל פיתוח"], []).accept("מנהל פיתוח בכיר")
     assert TitleFilter(["r&d manager"], []).accept("R&D Manager")
     assert TitleFilter(["rd manager"], []).accept("R & D Manager")
     assert TitleFilter(["senior engineer"], []).accept("Sr. / Senior Engineer")
@@ -62,3 +62,7 @@ def test_load_titles(tmp_path):
     p.write_text("[include]\nqa engineer\n[exclude]\nintern\n", encoding="utf-8")
     f = load_titles(p)
     assert f.accept("Senior QA Engineer") and not f.accept("QA Engineer Intern")
+
+
+def test_no_hebrew_gender_folding():
+    assert normalize("מנהל/ת פיתוח") == "מנהל ת פיתוח"

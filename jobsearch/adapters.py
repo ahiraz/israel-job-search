@@ -37,7 +37,7 @@ import urllib.request
 from typing import Callable, Optional
 from urllib.parse import quote, urlsplit
 
-USER_AGENT = "IsraelJobSearch/1.0 (+https://github.com/OWNER/israel-job-search; reads public job boards)"
+USER_AGENT = "IsraelJobSearch/1.0 (+https://github.com/ahiraz/israel-job-search; reads public job boards)"
 MAX_DESC = 8000
 TIMEOUT = 30
 HOST_DELAY = 0.35  # minimum gap between two requests to the same host, seconds

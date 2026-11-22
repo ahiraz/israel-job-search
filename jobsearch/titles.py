@@ -9,7 +9,7 @@ Read from a plain-text file (``./jobs/titles.txt`` by default)::
     intern
 
 Matching is case-insensitive and whole-word, on a normalised title
-(punctuation ignored, "R&D" == "RD", Hebrew "מנהל/ת" == "מנהל"). A title is
+(punctuation ignored, "R&D" == "RD"). A title is
 kept when it matches any [include] phrase and no [exclude] phrase. There are no
 built-in exclusions: everything comes from the user's file.
 
@@ -26,8 +26,6 @@ SECTIONS = ("include", "exclude")
 
 # "*" in a phrase = up to this many words in between.
 _WILDCARD = r"(?:\w+\s+){0,3}"
-# Hebrew gender slash: מנהל/ת, מפתח/ת, ראש/ת, מתכנת/ית -> the base form.
-_HE_GENDER = re.compile(r"(?<=[֐-׿])\s*/\s*(?:ית|ת|ה)(?![֐-׿])")
 
 
 class NoTitlesError(ValueError):
@@ -35,10 +33,9 @@ class NoTitlesError(ValueError):
 
 
 def normalize(text: str) -> str:
-    """Lowercase, fold R&D to rd, fold Hebrew gender slashes, drop punctuation,
+    """Lowercase, fold R&D to rd, drop punctuation,
     collapse whitespace. Hebrew letters survive (they are \\w)."""
     t = unicodedata.normalize("NFKC", text or "").lower()
-    t = _HE_GENDER.sub("", t)
     t = re.sub(r"r\s*&\s*d", "rd", t)
     t = re.sub(r"[^\w*\s]", " ", t)  # keep "*" so phrases can use it
     return re.sub(r"\s+", " ", t).strip()
