@@ -12,6 +12,13 @@ matching open jobs in Israel, and read it. Nothing more.
   from company ATS boards + techmap in a couple of minutes, with no keys or logins
   required for the search itself.
 
+## General by design (decided)
+Skills are general-purpose: they work for any job title or function (developer, designer,
+accountant, VP), not only management roles. Nothing in the code or skill text assumes a
+role family, seniority or exclusion list; everything comes from the user's titles file.
+hermis's management `roles.txt`, `[exclude_function]` and the techmap Manager/Executive
+level filter are not ported.
+
 ## Goals
 1. Suggest title permutations from a user's title; user confirms.
 2. Search ~283 Israeli employers' public ATS boards for those titles (Israel only).
@@ -51,8 +58,9 @@ everywhere, including discovery (port jobsworm's httpx/asyncio code to urllib + 
 Output goes to the terminal and to `./jobs/` in the user's current directory.
 
 1. **job-titles** — model suggests 4–8 variants of the user's title; user ticks
-   which to keep; excludes default to Team Lead / Tech Lead only when the user's title
-   is managerial (builder's call to make this rule clean). Saves `./jobs/titles.txt`.
+   which to keep, then asks which words or titles to exclude (e.g. "intern", "team lead").
+   No built-in exclusions: the user defines them. Saves includes and excludes to
+   `./jobs/titles.txt` (`[include]` / `[exclude]` sections), which the user can also edit by hand.
    This is the only step where the model generates content, and it generates search
    terms, not results.
 2. **search-boards** — runs the ported ATS fetch against `companies.json` with the
@@ -76,7 +84,7 @@ Output goes to the terminal and to `./jobs/` in the user's current directory.
 - Reuse hermis `role_filter.py` semantics: case-insensitive whole-word, `*` = up to 3 words,
   include/exclude lists — but the include list comes from `titles.txt` instead of the
   hard-coded management `roles.txt`.
-- One shared title rule for both sources, including the Team Lead / Tech Lead exclusion.
+- One shared title rule for both sources, using only the user's own include and exclude lists.
 - Israel filter: reuse `adapters.in_israel`.
 
 ## Constraints
