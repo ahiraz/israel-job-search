@@ -26,7 +26,9 @@ it because their list already carries the body.
 
 import html
 import json
+import os
 import re
+import ssl
 import threading
 import time
 import unicodedata
@@ -63,14 +65,39 @@ def _throttle(url: str) -> None:
         time.sleep(start - now)
 
 
+# Where the OS keeps its CA certificates. Used when Python's own store is empty,
+# as with the python.org macOS installer before "Install Certificates" is run.
+_CA_BUNDLES = (
+    "/etc/ssl/cert.pem",                    # macOS, Alpine
+    "/etc/ssl/certs/ca-certificates.crt",   # Debian, Ubuntu
+    "/etc/pki/tls/certs/ca-bundle.crt",     # Fedora, RHEL
+)
+
+
+def _ssl_context():
+    ctx = ssl.create_default_context()
+    if ctx.cert_store_stats().get("x509_ca", 0) == 0:
+        for path in _CA_BUNDLES:
+            if os.path.exists(path):
+                ctx.load_verify_locations(cafile=path)
+                break
+    return ctx
+
+
+_SSL = None
+
+
 def _get(url: str, accept: str, retries: int = 2) -> str:
     """GET `url` and return the decoded body. Retries 429/5xx honouring
     Retry-After, and network errors with backoff."""
+    global _SSL
+    if _SSL is None:
+        _SSL = _ssl_context()
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": accept})
     for attempt in range(retries + 1):
         _throttle(url)
         try:
-            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            with urllib.request.urlopen(req, timeout=TIMEOUT, context=_SSL) as resp:
                 return resp.read().decode("utf-8-sig")
         except urllib.error.HTTPError as e:
             if e.code in (429, 500, 502, 503, 504) and attempt < retries:

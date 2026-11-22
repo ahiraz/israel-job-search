@@ -187,10 +187,37 @@ def test_http_get_text_sends_ua_and_decodes(monkeypatch):
         def __exit__(self, *e): return False
         def read(self): return "﻿שלום,x".encode("utf-8")
 
-    def fake_urlopen(req, timeout):
+    def fake_urlopen(req, timeout, context=None):
         seen["ua"] = req.get_header("User-agent")
         return Resp()
 
     monkeypatch.setattr(a.urllib.request, "urlopen", fake_urlopen)
     assert a.http_get_text("https://example.com/x.csv") == "שלום,x"
     assert seen["ua"] == a.USER_AGENT
+
+
+def test_ssl_context_falls_back_to_system_bundle(monkeypatch, tmp_path):
+    import ssl
+    loaded = []
+
+    class Ctx:
+        def cert_store_stats(self): return {"x509_ca": 0}
+        def load_verify_locations(self, cafile): loaded.append(cafile)
+
+    monkeypatch.setattr(ssl, "create_default_context", lambda: Ctx())
+    bundle = tmp_path / "cert.pem"
+    bundle.write_text("x")
+    monkeypatch.setattr(a, "_CA_BUNDLES", (str(tmp_path / "missing.pem"), str(bundle)))
+    a._ssl_context()
+    assert loaded == [str(bundle)]
+
+
+def test_ssl_context_keeps_default_when_it_has_certs(monkeypatch):
+    import ssl
+
+    class Ctx:
+        def cert_store_stats(self): return {"x509_ca": 120}
+        def load_verify_locations(self, cafile): raise AssertionError("should not load")
+
+    monkeypatch.setattr(ssl, "create_default_context", lambda: Ctx())
+    a._ssl_context()

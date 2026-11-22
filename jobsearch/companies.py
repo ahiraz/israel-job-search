@@ -68,15 +68,15 @@ def dedupe(companies: list[dict]) -> list[dict]:
     return out
 
 
-def load_companies(shipped: Path = SHIPPED) -> list[dict]:
-    return dedupe(_read(Path(shipped)) + _read(user_file()))
+def load_companies(shipped: Path | None = None) -> list[dict]:
+    return dedupe(_read(Path(shipped or SHIPPED)) + _read(user_file()))
 
 
-def known_boards(shipped: Path = SHIPPED) -> set[tuple[str, str]]:
-    return {(c["provider"], c["token"]) for c in _read(Path(shipped)) + _read(user_file())}
+def known_boards(shipped: Path | None = None) -> set[tuple[str, str]]:
+    return {(c["provider"], c["token"]) for c in _read(Path(shipped or SHIPPED)) + _read(user_file())}
 
 
-def add_user_companies(new: list[dict], shipped: Path = SHIPPED) -> int:
+def add_user_companies(new: list[dict], shipped: Path | None = None) -> int:
     """Append boards not already known to the user's file. Returns how many were added.
     Never writes the shipped file."""
     known = known_boards(shipped)
