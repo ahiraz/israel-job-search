@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "ATS board tokens in companies.json are public identifiers that each employer's careers page publishes, not credentials."
+paths = ['''data/companies\.json''']

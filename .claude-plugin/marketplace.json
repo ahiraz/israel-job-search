@@ -1,0 +1,16 @@
+{
+  "name": "israel-job-search",
+  "owner": {
+    "name": "israel-job-search maintainers"
+  },
+  "plugins": [
+    {
+      "name": "israel-job-search",
+      "source": "./",
+      "description": "Search open jobs in Israel by job title across employer job boards and techmap, merged into one list."
+    }
+  ],
+  "metadata": {
+    "description": "Job search for Israel: employer job boards + techmap, merged."
+  }
+}
