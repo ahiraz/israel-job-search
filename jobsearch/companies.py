@@ -21,6 +21,11 @@ SHIPPED = Path(__file__).resolve().parent.parent / "data" / "companies.json"
 REQUIRED = ("name", "provider", "token")
 
 
+def _shipped(shipped: Path | None) -> Path:
+    """The built-in list. JOBSEARCH_SHIPPED_FILE replaces it (used by the live tests)."""
+    return Path(shipped or os.environ.get("JOBSEARCH_SHIPPED_FILE") or SHIPPED)
+
+
 class CompanyFileError(ValueError):
     """A companies file could not be read."""
 
@@ -69,11 +74,11 @@ def dedupe(companies: list[dict]) -> list[dict]:
 
 
 def load_companies(shipped: Path | None = None) -> list[dict]:
-    return dedupe(_read(Path(shipped or SHIPPED)) + _read(user_file()))
+    return dedupe(_read(_shipped(shipped)) + _read(user_file()))
 
 
 def known_boards(shipped: Path | None = None) -> set[tuple[str, str]]:
-    return {(c["provider"], c["token"]) for c in _read(Path(shipped or SHIPPED)) + _read(user_file())}
+    return {(c["provider"], c["token"]) for c in _read(_shipped(shipped)) + _read(user_file())}
 
 
 def add_user_companies(new: list[dict], shipped: Path | None = None) -> int:

@@ -103,7 +103,12 @@ def test_update_companies_finds_and_saves_daylight(tmp_path):
     """update-companies flow on search-result-like URLs: one known board, two new
     ones (Daylight on Greenhouse, Cycode on Comeet), one non-board page."""
     cfg = tmp_path / "cfg"
-    known = next(c for c in load_companies() if c["provider"] == "greenhouse")
+    # Daylight and Cycode are in the shipped list now; discover them against a copy without them.
+    shipped = [c for c in load_companies() if c["token"] != "daylightsecurity" and not c["token"].startswith("A8.00D")]
+    alt = tmp_path / "shipped.json"
+    alt.write_text(json.dumps(shipped), encoding="utf-8")
+    os.environ["JOBSEARCH_SHIPPED_FILE"] = str(alt)
+    known = next(c for c in shipped if c["provider"] == "greenhouse")
     urls = tmp_path / "urls.txt"
     urls.write_text("\n".join([
         f"https://job-boards.greenhouse.io/{known['token']}",
@@ -133,6 +138,7 @@ def test_update_companies_finds_and_saves_daylight(tmp_path):
         assert any(c["token"] == "daylightsecurity" for c in load_companies())
     finally:
         del os.environ["JOBSEARCH_CONFIG_DIR"]
+        del os.environ["JOBSEARCH_SHIPPED_FILE"]
 
 
 def test_saved_company_is_searched(tmp_path):

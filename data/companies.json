@@ -434,6 +434,13 @@
   "careers_url": "https://crossriver.com/careers"
  },
  {
+  "name": "Cycode",
+  "domain": "cycode.com",
+  "provider": "comeet",
+  "token": "A8.00D::8AD340E3CBB3CBB22B445680340E22B44568",
+  "careers_url": "https://www.comeet.com/jobs/cycode/A8.00D"
+ },
+ {
   "name": "Cyera",
   "domain": "cyera.io",
   "provider": "comeet",
@@ -467,6 +474,13 @@
   "provider": "greenhouse",
   "token": "datarails",
   "careers_url": "https://job-boards.greenhouse.io/datarails"
+ },
+ {
+  "name": "Daylight Security",
+  "domain": "daylight.ai",
+  "provider": "greenhouse",
+  "token": "daylightsecurity",
+  "careers_url": "https://job-boards.greenhouse.io/daylightsecurity"
  },
  {
   "name": "Deepdub",

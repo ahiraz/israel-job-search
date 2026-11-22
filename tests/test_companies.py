@@ -72,3 +72,17 @@ def test_add_user_companies(env):
     assert [x["token"] for x in saved] == ["beta"]
     assert shipped.stat().st_mtime_ns == before
     assert c.add_user_companies([B], shipped) == 0
+
+
+def test_shipped_file_env_override(tmp_path, monkeypatch):
+    alt = tmp_path / "alt.json"
+    alt.write_text(json.dumps([B]), encoding="utf-8")
+    monkeypatch.setenv("JOBSEARCH_SHIPPED_FILE", str(alt))
+    monkeypatch.setenv("JOBSEARCH_CONFIG_DIR", str(tmp_path / "cfg"))
+    assert [x["name"] for x in c.load_companies()] == ["Beta"]
+
+
+def test_shipped_list_has_daylight_and_cycode(monkeypatch, tmp_path):
+    monkeypatch.setenv("JOBSEARCH_CONFIG_DIR", str(tmp_path / "cfg"))
+    names = {x["name"] for x in c.load_companies()}
+    assert {"Daylight Security", "Cycode"} <= names
