@@ -1,6 +1,6 @@
 {
   "name": "israel-job-search",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Search open jobs in Israel by job title, across ~280 employers' own job boards (Comeet, Greenhouse, Lever, Ashby, SmartRecruiters, Recruitee) and techmap, merged into one list.",
   "license": "MIT",
   "keywords": [
