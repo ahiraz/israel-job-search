@@ -57,7 +57,7 @@ It does not look for new companies. Use update-companies for that.
 ### job-titles: choose what to search for
 
 You give one title. Claude suggests 4–8 variations that Israeli employers actually
-post, including Hebrew forms where common. You keep the ones you want and name
+post, in English. You keep the ones you want and name
 anything to exclude, such as `intern` or `team lead`. There are no default
 exclusions.
 
