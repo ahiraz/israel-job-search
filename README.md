@@ -35,7 +35,72 @@ Ask Claude:
 That runs the **find-jobs** skill: it helps you pick titles, searches both sources and
 saves the merged list under `./jobs/` in your current folder.
 
-## The skills
+## The skills at a glance
+
+| Skill | What it does | Reads | Writes | When to use it |
+|---|---|---|---|---|
+| **find-jobs** | The full search: runs the three skills below in order, then merges and deduplicates the results | — | `./jobs/YYYY-MM-DD.md` and `.csv` | Most of the time. This is the one to start with. |
+| **job-titles** | Suggests variations of your job title, lets you pick, asks what to exclude | — | `./jobs/titles.txt` | To set or change what you search for |
+| **search-boards** | Searches ~280 Israeli employers' own job boards | `titles.txt` | `./jobs/boards.csv` | To search company career pages only |
+| **search-techmap** | Searches techmap's daily lists, which include LinkedIn postings | `titles.txt` | `./jobs/techmap.csv` | To search LinkedIn jobs only (takes seconds) |
+| **update-companies** | Finds employers missing from the search, checks they have jobs in Israel, adds them after you approve | — | `~/.config/israel-job-search/companies.json` | Occasionally, to widen coverage. Never runs on its own. |
+
+### How to run a skill
+
+Say what you want in plain words ("find me data analyst jobs", "change my job titles",
+"search only LinkedIn", "add missing companies") and Claude picks the skill. Or call it
+directly by name:
+
+```
+/israel-job-search:find-jobs
+/israel-job-search:job-titles
+/israel-job-search:search-boards
+/israel-job-search:search-techmap
+/israel-job-search:update-companies
+```
+
+## How the skills fit together
+
+```
+            ┌──────────────────────── find-jobs ────────────────────────┐
+            │                                                           │
+  you ──▶   │  1. job-titles  ──▶  ./jobs/titles.txt                    │
+            │                         │                                 │
+            │            ┌────────────┴────────────┐                    │
+            │            ▼                         ▼                    │
+            │  2. search-boards           3. search-techmap             │
+            │     (employer boards)          (LinkedIn via techmap)     │
+            │            │                         │                    │
+            │     ./jobs/boards.csv        ./jobs/techmap.csv           │
+            │            └────────────┬────────────┘                    │
+            │                         ▼                                 │
+            │                 4. merge  ──▶  ./jobs/YYYY-MM-DD.md, .csv │
+            └───────────────────────────────────────────────────────────┘
+
+  update-companies  ──▶  ~/.config/israel-job-search/companies.json
+  (separate, run when you choose)          │
+                                           └──▶ used by every later search-boards run
+```
+
+- **job-titles comes first.** Both searches read `./jobs/titles.txt`. If it is missing,
+  search-boards and search-techmap run job-titles for you.
+- **The two searches are independent.** If one fails (for example a network problem),
+  find-jobs still merges what the other found and tells you which source failed.
+- **update-companies is never part of find-jobs.** Its additions take effect the next
+  time job boards are searched.
+
+### Typical workflows
+
+| You want to… | Run |
+|---|---|
+| Search for the first time | **find-jobs** |
+| Search again later with the same titles | **find-jobs**, and choose to reuse `titles.txt` |
+| Search for a different role | **job-titles** (start over), then **find-jobs** |
+| See only LinkedIn jobs, quickly | **search-techmap** |
+| See only company career pages | **search-boards** |
+| A company you know is hiring is missing | **update-companies** (name the company), then **find-jobs** |
+
+## Skill details
 
 ### find-jobs: the whole search in one go
 
