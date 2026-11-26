@@ -39,11 +39,11 @@ saves the merged list under `./jobs/` in your current folder.
 
 | Skill | What it does | Reads | Writes | When to use it |
 |---|---|---|---|---|
-| **find-jobs** | The full search: runs the three skills below in order, then merges and deduplicates the results | — | `./jobs/YYYY-MM-DD.md` and `.csv` | Most of the time. This is the one to start with. |
-| **job-titles** | Suggests variations of your job title, lets you pick, asks what to exclude | — | `./jobs/titles.txt` | To set or change what you search for |
+| **job-titles** | Suggests variations of your job title, lets you pick, asks what to exclude | — | `./jobs/titles.txt` | First, to set or change what you search for |
+| **find-jobs** | The full search: uses your titles, searches both sources, then merges and deduplicates the results | `titles.txt` | `./jobs/YYYY-MM-DD.md` and `.csv` | After job-titles, every time you want fresh results |
 | **search-boards** | Searches ~280 Israeli employers' own job boards | `titles.txt` | `./jobs/boards.csv` | To search company career pages only |
 | **search-techmap** | Searches techmap's daily lists, which include LinkedIn postings | `titles.txt` | `./jobs/techmap.csv` | To search LinkedIn jobs only (takes seconds) |
-| **update-companies** | Finds employers missing from the search, checks they have jobs in Israel, adds them after you approve | — | `~/.config/israel-job-search/companies.json` | Occasionally, to widen coverage. Never runs on its own. |
+| **update-companies** | Finds new companies and adds them to the company list the job-board search uses | — | `~/.config/israel-job-search/companies.json` | On a slow cadence (for example once a month), to pick up companies that started hiring in Israel. Never part of find-jobs. |
 
 ### How to run a skill
 
@@ -86,19 +86,87 @@ directly by name:
   search-boards and search-techmap run job-titles for you.
 - **The two searches are independent.** If one fails (for example a network problem),
   find-jobs still merges what the other found and tells you which source failed.
-- **update-companies is never part of find-jobs.** Its additions take effect the next
-  time job boards are searched.
+- **update-companies is never part of find-jobs.** Run it on a slow cadence to add new
+  companies; they are searched from the next run of find-jobs or search-boards on.
 
 ### Typical workflows
 
 | You want to… | Run |
 |---|---|
-| Search for the first time | **find-jobs** |
-| Search again later with the same titles | **find-jobs**, and choose to reuse `titles.txt` |
+| Search for the first time | **job-titles**, then **find-jobs** |
+| Search again later with the same titles | **find-jobs** (it asks whether to reuse `titles.txt`) |
 | Search for a different role | **job-titles** (start over), then **find-jobs** |
-| See only LinkedIn jobs, quickly | **search-techmap** |
-| See only company career pages | **search-boards** |
-| A company you know is hiring is missing | **update-companies** (name the company), then **find-jobs** |
+| See only LinkedIn jobs, quickly | **job-titles** (once), then **search-techmap** |
+| See only company career pages | **job-titles** (once), then **search-boards** |
+| Cover companies that started hiring recently | **update-companies** every month or so, then **find-jobs** as usual |
+
+## Example: job-titles, then find-jobs
+
+**Step 1: define the titles.**
+
+> **You:** set my job titles, I'm looking for data analyst roles
+>
+> **Claude:** Here are variations Israeli employers post:
+> 1. Data Analyst
+> 2. Business Analyst
+> 3. Product Analyst
+> 4. BI Analyst
+> 5. Senior Data Analyst
+> 6. Data Insights Analyst
+>
+> Which should I keep?
+>
+> **You:** 1–4
+>
+> **Claude:** Any words or titles to exclude?
+>
+> **You:** intern, student
+
+Claude saves `./jobs/titles.txt`:
+
+```
+[include]
+data analyst
+business analyst
+product analyst
+bi analyst
+[exclude]
+intern
+student
+```
+
+"data analyst" already matches "Senior Data Analyst", so there's no need for a
+separate senior line.
+
+**Step 2: run the search.**
+
+> **You:** find me jobs
+>
+> **Claude:** You already have `./jobs/titles.txt` (data analyst, business analyst,
+> product analyst, bi analyst; excluding intern, student). Reuse it, edit it, or start over?
+>
+> **You:** reuse
+
+Claude then searches both sources and merges them:
+
+```
+Searched 288 company boards (6 failed)
+Found 24 jobs in Israel
+Read 19 techmap categories (0 failed)
+Found 29 jobs in techmap (LinkedIn via techmap)
+
+Data Analyst · 39 jobs · 35 companies · 14 duplicates merged
+Company       Title                   City            Posted      Link
+Bright Data   Data Analyst            Netanya         2026-11-26  https://www.comeet.com/jobs/brightdata/…
+Claroty       Product Analyst         Tel Aviv        2026-11-26  https://www.comeet.com/jobs/Claroty/…
+Modellama     Data Analyst            Ra'anana        2026-11-26  https://www.comeet.com/jobs/Modellama/…
+365scores     Senior Data Analyst     Tel Aviv        2026-11-25  https://www.comeet.com/jobs/365scores/…
+Global-e      Data Analyst            Petah Tikva     2026-11-25  https://www.comeet.com/jobs/global-e/…
+…
+Saved → jobs/2026-11-26.md and .csv
+```
+
+Next time, just say "find me jobs" and reuse the same titles to get fresh results.
 
 ## Skill details
 
@@ -166,9 +234,11 @@ Found 69 jobs in techmap (LinkedIn via techmap)
 Saved → jobs/techmap.csv
 ```
 
-### update-companies: find employers the search is missing
+### update-companies: add new companies to the search
 
-Run it only when you want to (it is never part of find-jobs). Claude uses its
+Finds new companies and adds them to the company list the job-board search uses.
+Run it on a slow cadence, for example once a month, to pick up companies that
+started hiring in Israel. It is never part of find-jobs. Claude uses its
 built-in web search to look for job-board pages that mention Israel
 (`site:job-boards.greenhouse.io "Tel Aviv"`, Ashby, Lever, Comeet…). A script then
 checks every board it finds:
