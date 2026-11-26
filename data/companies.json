@@ -1232,6 +1232,13 @@
   "careers_url": "https://job-boards.greenhouse.io/okta"
  },
  {
+  "name": "Oktopost",
+  "domain": "oktopost.com",
+  "provider": "lever",
+  "token": "oktopost",
+  "careers_url": "https://jobs.lever.co/oktopost"
+ },
+ {
   "name": "Oligo Security",
   "domain": "oligo.security",
   "provider": "comeet",
@@ -1391,6 +1398,13 @@
   "provider": "comeet",
   "token": "A1.00F::1AF6BCA1AF27A1A35E86B6BC50D0",
   "careers_url": "https://careers.plus500.com/careers"
+ },
+ {
+  "name": "Pontera",
+  "domain": "pontera.com",
+  "provider": "greenhouse",
+  "token": "pontera",
+  "careers_url": "https://job-boards.greenhouse.io/pontera"
  },
  {
   "name": "prettydamnquick",
@@ -1783,6 +1797,13 @@
   "provider": "comeet",
   "token": "A6.00E::6AE2814D5CD5C1AB8140A35706AE2EC22814",
   "careers_url": "https://trieye.tech/careers"
+ },
+ {
+  "name": "Triple Whale",
+  "domain": "triplewhale.com",
+  "provider": "greenhouse",
+  "token": "triplewhale",
+  "careers_url": "https://job-boards.greenhouse.io/triplewhale"
  },
  {
   "name": "Tulip Interfaces",
